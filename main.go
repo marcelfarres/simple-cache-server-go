@@ -11,7 +11,7 @@ var (
 	HTTPAddr = flag.String("http", "127.0.0.1:8000", "Address to listen for HTTP requests on")
 )
 
-const testMode bool = true
+const testMode bool = false
 
 func main() {
 	// Parse the command-line flags.

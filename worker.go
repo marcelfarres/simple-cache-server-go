@@ -6,15 +6,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	// "time"
+	"time"
 
 	"github.com/coocood/freecache"
 )
 
-// type HTTPResponse struct {
-// 	Status int
-// 	JSONData
-// }
 type HTTPResponse struct {
 	Status int
 	Key    string
@@ -66,6 +62,7 @@ func (w Worker) Start() {
 			select {
 			case work := <-w.Work:
 				// fmt.Println(work)
+				t0 := time.Now()
 
 				fmt.Printf("Work being dispatcher by worker number:%v\n", w.ID)
 				valuecache, err := w.Cache.Get([]byte(work.Key))
@@ -113,9 +110,9 @@ func (w Worker) Start() {
 					R = HTTPResponse{Status: 207, Key: work.Key, Value: s}
 				}
 
-				// if testMode {
-				// 	time.Sleep(5 * time.Millisecond)
-				// }
+				if testMode {
+					time.Sleep(5 * time.Millisecond)
+				}
 
 				js, err := json.Marshal(R)
 
@@ -130,8 +127,9 @@ func (w Worker) Start() {
 				work.ConnResponse.Header().Set("Content-Type", "application/json")
 				work.ConnResponse.Write(js)
 				work.done <- true
-				fmt.Printf("Work done!(from worker %v)\n", w.ID)
-
+				fmt.Printf("Work done!(from worker %v). \n", w.ID)
+				t1 := time.Now()
+				fmt.Printf("Processing time:%v\n", t1.Sub(t0))
 			case <-w.QuitChan:
 				// We have been asked to stop.
 				fmt.Printf("worker%d stopping\n", w.ID)

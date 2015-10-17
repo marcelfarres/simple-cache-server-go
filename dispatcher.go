@@ -9,7 +9,6 @@ import (
 ////////////////
 // Dispatcher //
 ////////////////
-
 var WorkerQueue chan chan WorkRequest
 
 func StartDispatcher(nworkers int) {
