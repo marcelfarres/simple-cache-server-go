@@ -61,7 +61,6 @@ func (w Worker) Start() {
 
 			select {
 			case work := <-w.Work:
-				// fmt.Println(work)
 				t0 := time.Now()
 
 				fmt.Printf("Work being dispatcher by worker number:%v\n", w.ID)
@@ -72,6 +71,7 @@ func (w Worker) Start() {
 					fmt.Printf("Key:%v request is NOT in the cache\n", work.Key)
 					var d []JSONData
 
+					// Acces the database
 					file, err := ioutil.ReadFile("./database.json")
 					if err != nil {
 						fmt.Printf("File error: %v\n", err)
@@ -79,6 +79,7 @@ func (w Worker) Start() {
 						continue
 					}
 
+					// Decode JSON
 					err = json.Unmarshal(file, &d)
 					if err != nil {
 						fmt.Printf("Error while decoding JSON: %v\n", err)
@@ -86,6 +87,7 @@ func (w Worker) Start() {
 						continue
 					}
 
+					// Try to find the key
 					found := false
 					for _, v := range d {
 						if bytes.Equal([]byte(v.Key), []byte(work.Key)) {
@@ -93,6 +95,7 @@ func (w Worker) Start() {
 							found = true
 							Value = v.Value
 							w.Cache.Set([]byte(work.Key), []byte(Value), 0)
+							continue
 						}
 					}
 
@@ -105,27 +108,26 @@ func (w Worker) Start() {
 
 				} else { // In the cache
 					fmt.Printf("Key:%v request is in the cache\n", work.Key)
-					// n := bytes.IndexByte(valuecache, 0)
+					// Decode value
 					s := string(valuecache[:])
+
 					R = HTTPResponse{Status: 207, Key: work.Key, Value: s}
 				}
 
-				if testMode {
-					time.Sleep(5 * time.Millisecond)
-				}
-
+				// Format JSON Response
 				js, err := json.Marshal(R)
 
-				// fmt.Println(R)
-				// fmt.Println(js)
 				if err != nil {
 					http.Error(work.ConnResponse, err.Error(), http.StatusInternalServerError)
 					fmt.Println("Error during JSON Formating")
 					return
 				}
-
+				// Set Header
 				work.ConnResponse.Header().Set("Content-Type", "application/json")
+				// Write JSON
 				work.ConnResponse.Write(js)
+
+				// Send done signal
 				work.done <- true
 				fmt.Printf("Work done!(from worker %v). \n", w.ID)
 				t1 := time.Now()

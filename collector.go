@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	// "reflect"
 )
 
 ///////////////
@@ -24,7 +23,6 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 	// Now, we retrieve the key from the request.
 	key := r.FormValue("key")
 
-	//fmt.Println(reflect.TypeOf(key))
 	// Just do a quick bit of sanity checking to make sure the client actually provided us with a key.
 	if key == "" {
 		http.Error(w, "You must specify a key.", http.StatusBadRequest)
@@ -34,7 +32,6 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 	dch := make(chan bool)
 	// Now, we take key and make a WorkRequest.
 	work := WorkRequest{Key: key, ConnResponse: w, done: dch}
-	// fmt.Println(work)
 
 	// Push the work onto the queue.
 	WorkQueue <- work
@@ -42,6 +39,8 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 
 	// And let the user know their work request was created.
 	w.WriteHeader(http.StatusCreated)
+
+	// Wait for the worker to finish the job
 	succ := <-dch
 	fmt.Printf("Done signal recived. Work request finished is %v \n\n", succ)
 	return
