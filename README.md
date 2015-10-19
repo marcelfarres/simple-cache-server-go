@@ -14,7 +14,7 @@ Build and Run
 
 - build --> go build -o cacheserver *.go (respecting GOPATH --> go/src/github.org/{user}/simple-cache-server-go) 
 
--run --> ./cacheserver -n 20000 (This number is the workers you want)
+- run --> ./cacheserver -n 20000 (This number is the workers you want)
 
 In order to perform the query test I use this 2 bash scripts: 
 
